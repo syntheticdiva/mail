@@ -1,0 +1,8 @@
+"db_url"="jdbc:postgresql://localhost:5433/mail"
+"db_user"="postgres"
+"db_pass"="111"
+
+"mail_username"="alina.sheveleva2023@mail.ru"
+"mail_password"="6XbvyUZxWkRYmrkznqcm"
+"admin_email"="alina.sheveleva2023@mail.ru"
+	

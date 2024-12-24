@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Заказ успешен</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="alert alert-success" role="alert">
+                <h1 class="alert-heading">Заказ успешно оформлен</h1>
+                <p th:text="${message}" class="mb-3"></p>
+                <ul class="list-group">
+                    <li th:each="service : ${services}"
+                        class="list-group-item d-flex justify-content-between align-items-center">
+                        <span th:text="${service.name}"></span>
+                        <span class="badge bg-primary rounded-pill" th:text="${service.code}"></span>
+                    </li>
+                </ul>
+
+                <hr>
+                <a href="/services" class="btn btn-primary mt-3">
+                    Вернуться к услугам
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
