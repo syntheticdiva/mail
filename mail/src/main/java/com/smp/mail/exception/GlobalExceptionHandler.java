@@ -13,6 +13,17 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(ConfigFileNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleConfigFileNotFoundException(ConfigFileNotFoundException ex) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage("Ошибка конфигурации");
+        errorResponse.setCause("Отсутствует файл config.txt");
+        errorResponse.setResolution("Создайте файл config.txt в корневой директории приложения");
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(errorResponse);
+    }
     @ExceptionHandler(EmailSendingException.class)
     public ResponseEntity<ErrorResponse> handleEmailSendingException(EmailSendingException ex) {
         ErrorResponse errorResponse = new ErrorResponse();
