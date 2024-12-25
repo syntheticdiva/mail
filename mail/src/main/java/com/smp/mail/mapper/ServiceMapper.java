@@ -1,23 +1,15 @@
 package com.smp.mail.mapper;
 
 import com.smp.mail.dto.ServiceDTO;
-import com.smp.mail.entity.ServiceEntity;
+import com.smp.mail.entity.ItemEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import java.util.List;
-
 @Mapper(componentModel = "spring")
 public interface ServiceMapper {
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "code", target = "code")
-    @Mapping(source = "name", target = "name")
-    ServiceDTO toDto(ServiceEntity serviceEntity);
 
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "code", target = "code")
-    @Mapping(source = "name", target = "name")
-    ServiceEntity toEntity(ServiceDTO serviceDTO);
-
-    List<ServiceDTO> toDtoList(List<ServiceEntity> serviceEntities);
+    @Mapping(source = "service.id", target = "id")
+    @Mapping(source = "service.name", target = "name")
+    @Mapping(source = "service.code", target = "code")
+    ServiceDTO itemEntityToServiceDTO(ItemEntity itemEntity);
 }

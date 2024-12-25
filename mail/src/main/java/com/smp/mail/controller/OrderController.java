@@ -1,11 +1,9 @@
 package com.smp.mail.controller;
 
 import com.smp.mail.dto.OrderDTO;
-import com.smp.mail.dto.ServiceDTO;
 import com.smp.mail.entity.OrderEntity;
 import com.smp.mail.entity.ServiceEntity;
-import com.smp.mail.repository.ServiceRepository;
-import com.smp.mail.service.EmailService;
+import com.smp.mail.service.OrderProcessingService;
 import com.smp.mail.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,65 +11,45 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/orders")
 public class OrderController {
-    @Autowired private ServiceRepository serviceRepository;
+    private static final String PATH_CREATE = "/create";
+    private static final String PATH_SAVE = "/save";
+    private static final String PATH_CONFIRMATION = "/confirmation/{orderId}";
+
+    private static final String VIEW_ORDER_CREATION = "order-creation";
+    private static final String VIEW_ORDER_CONFIRMATION = "order-confirmation";
+
+    private static final String ATTR_SERVICES = "services";
+    private static final String ATTR_ORDER = "order";
+
+    @Autowired
+    private OrderProcessingService orderProcessingService;
 
     @Autowired
     private OrderService orderService;
 
-    @Autowired
-    private EmailService emailService;
-
-    @GetMapping("/create")
+    @GetMapping(PATH_CREATE)
     public String showOrderCreationPage(Model model) {
-        List<ServiceEntity> services = serviceRepository.findAll();
-        model.addAttribute("services", services);
-        return "order-creation";
+        List<ServiceEntity> services = orderProcessingService.getAllServices();
+        model.addAttribute(ATTR_SERVICES, services);
+        return VIEW_ORDER_CREATION;
     }
 
-    @PostMapping("/save")
+    @PostMapping(PATH_SAVE)
     @ResponseBody
     public ResponseEntity<?> saveOrder(@RequestBody OrderDTO orderDTO) {
-        try {
-            OrderEntity savedOrder = orderService.createOrder(orderDTO);
-
-            List<ServiceDTO> serviceDTOs = savedOrder.getItemEntities().stream()
-                    .map(item -> {
-                        ServiceDTO dto = new ServiceDTO();
-                        dto.setId(item.getService().getId());
-                        dto.setName(item.getService().getName());
-                        dto.setCode(item.getService().getCode());
-                        return dto;
-                    })
-                    .collect(Collectors.toList());
-
-            emailService.sendOrderConfirmation(
-                    savedOrder.getUserEmail(),
-                    serviceDTOs
-            );
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", savedOrder.getId());
-            response.put("email", savedOrder.getUserEmail());
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("Ошибка сохранения заказа: " + e.getMessage());
-        }
+        Map<String, Object> response = orderProcessingService.saveOrder(orderDTO);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/confirmation/{orderId}")
+    @GetMapping(PATH_CONFIRMATION)
     public String orderConfirmation(@PathVariable Long orderId, Model model) {
         OrderEntity orderEntity = orderService.findById(orderId);
-        model.addAttribute("order", orderEntity);
-        return "order-confirmation";
+        model.addAttribute(ATTR_ORDER, orderEntity);
+        return VIEW_ORDER_CONFIRMATION;
     }
 }

@@ -5,10 +5,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-<!-- Кнопка "Создать заказ" -->
 <button id="createNewOrderBtn">Создать заказ</button>
 
-<!-- Форма заказа (изначально скрыта) -->
 <div id="orderFormContainer" style="display:none;">
     <h1>Создание заказа</h1>
 
@@ -38,7 +36,6 @@
             </tr>
             </thead>
             <tbody id="cartBody">
-            <!-- Сюда будут добавляться услуги -->
             </tbody>
         </table>
 
@@ -51,7 +48,7 @@
         // Обработчик кнопки "Создать заказ"
         $('#createNewOrderBtn').click(function() {
             $('#orderFormContainer').show();
-            $(this).hide(); // Скрываем кнопку создания заказа
+            $(this).hide();
         });
 
         const cart = [];
@@ -118,7 +115,6 @@
                 data: JSON.stringify(orderData),
                 success: function(response) {
                     alert('Заказ сохранен. Номер заказа: ' + response.id);
-                    // Перенаправление на страницу подтверждения
                     window.location.href = '/orders/confirmation/' + response.id;
                 },
                 error: function(xhr) {

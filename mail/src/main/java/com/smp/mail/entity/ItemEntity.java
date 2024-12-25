@@ -14,7 +14,7 @@ public class ItemEntity {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    private OrderEntity orderEntity;  // Убедитесь, что имя совпадает с mappedBy
+    private OrderEntity orderEntity;
 
     @ManyToOne
     @JoinColumn(name = "service_id", nullable = false)
