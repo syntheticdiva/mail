@@ -31,7 +31,6 @@ public class OrderService {
 
     @Transactional
     public OrderEntity createOrder(OrderDTO orderDTO) {
-        // Проверяем входящие данные
         if (orderDTO == null) {
             throw new IllegalArgumentException("OrderDTO не может быть null");
         }
@@ -44,24 +43,19 @@ public class OrderService {
             throw new IllegalArgumentException("Список услуг не может быть пустым");
         }
 
-        // Используем первый сервис из списка как основной
         Long mainServiceId = orderDTO.getItems().get(0).getServiceId();
 
-        // Находим основной сервис
         ServiceEntity mainService = serviceRepository
                 .findById(mainServiceId)
                 .orElseThrow(() -> new ServiceNotFoundException("Основной сервис не найден"));
 
-        // Создаем заказ
         OrderEntity orderEntity = new OrderEntity();
         orderEntity.setUserEmail(orderDTO.getUserEmail());
         orderEntity.setCreatedAt(LocalDateTime.now());
         orderEntity.setService(mainService);
 
-        // Сохраняем заказ первично
         OrderEntity savedOrderEntity = orderRepository.save(orderEntity);
 
-        // Создаем позиции заказа
         List<ItemEntity> itemEntities = new ArrayList<>();
         for (ItemDTO itemDTO : orderDTO.getItems()) {
             ServiceEntity service = serviceRepository
@@ -75,10 +69,8 @@ public class OrderService {
             itemEntities.add(itemEntity);
         }
 
-        // Сохраняем позиции заказа
         itemEntities = itemRepository.saveAll(itemEntities);
 
-        // Обновляем заказ с позициями
         savedOrderEntity.setItemEntities(itemEntities);
 
         return savedOrderEntity;

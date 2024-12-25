@@ -30,7 +30,6 @@ public class OrderController {
 
     @GetMapping("/create")
     public String showOrderCreationPage(Model model) {
-        // Получаем список всех услуг для выбора
         List<ServiceEntity> services = serviceRepository.findAll();
         model.addAttribute("services", services);
         return "order-creation";
@@ -40,10 +39,8 @@ public class OrderController {
     @ResponseBody
     public ResponseEntity<?> saveOrder(@RequestBody OrderDTO orderDTO) {
         try {
-            // Создаем заказ
             OrderEntity savedOrder = orderService.createOrder(orderDTO);
 
-            // Отправляем email с подтверждением
             List<ServiceDTO> serviceDTOs = savedOrder.getItemEntities().stream()
                     .map(item -> {
                         ServiceDTO dto = new ServiceDTO();
@@ -59,7 +56,6 @@ public class OrderController {
                     serviceDTOs
             );
 
-            // Возвращаем информацию о созданном заказе
             Map<String, Object> response = new HashMap<>();
             response.put("id", savedOrder.getId());
             response.put("email", savedOrder.getUserEmail());
