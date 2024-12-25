@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Подтверждение заказа</title>
+</head>
+<body>
+<h1>Заказ успешно создан!</h1>
+<p>Номер заказа: <span th:text="${order.id}"></span></p>
+<p>Email: <span th:text="${order.userEmail}"></span></p>
+
+<h2>Услуги:</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Услуга</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="itemEntity : ${order.itemEntities}">
+        <td th:text="${itemEntity.service.name}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<a href="/orders/create">Создать новый заказ</a>
+</body>
+</html>

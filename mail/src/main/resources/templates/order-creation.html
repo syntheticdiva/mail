@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Создание заказа</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<!-- Кнопка "Создать заказ" -->
+<button id="createNewOrderBtn">Создать заказ</button>
+
+<!-- Форма заказа (изначально скрыта) -->
+<div id="orderFormContainer" style="display:none;">
+    <h1>Создание заказа</h1>
+
+    <form id="orderForm">
+        <div>
+            <label>Email:</label>
+            <input type="email" id="userEmail" required>
+        </div>
+
+        <div>
+            <h2>Добавление услуги</h2>
+            <select id="serviceSelect">
+                <option th:each="service : ${services}"
+                        th:value="${service.id}"
+                        th:text="${service.name}">
+                </option>
+            </select>
+            <button type="button" id="addServiceBtn">Добавить в корзину</button>
+        </div>
+
+        <h2>Корзина услуг</h2>
+        <table id="cartTable">
+            <thead>
+            <tr>
+                <th>Услуга</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody id="cartBody">
+            <!-- Сюда будут добавляться услуги -->
+            </tbody>
+        </table>
+
+        <button type="button" id="saveOrderBtn">Сохранить заказ</button>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function() {
+        // Обработчик кнопки "Создать заказ"
+        $('#createNewOrderBtn').click(function() {
+            $('#orderFormContainer').show();
+            $(this).hide(); // Скрываем кнопку создания заказа
+        });
+
+        const cart = [];
+
+        $('#addServiceBtn').click(function() {
+            const serviceId = $('#serviceSelect').val();
+            const serviceName = $('#serviceSelect option:selected').text();
+
+            const cartItem = {
+                serviceId: serviceId,
+                serviceName: serviceName
+            };
+
+            cart.push(cartItem);
+            updateCartView();
+        });
+
+        function updateCartView() {
+            const cartBody = $('#cartBody');
+            cartBody.empty();
+
+            cart.forEach((item, index) => {
+                const row = `
+                    <tr>
+                        <td>${item.serviceName}</td>
+                        <td>
+                            <button type="button" onclick="removeFromCart(${index})">Удалить</button>
+                        </td>
+                    </tr>
+                `;
+                cartBody.append(row);
+            });
+        }
+
+        window.removeFromCart = function(index) {
+            cart.splice(index, 1);
+            updateCartView();
+        };
+
+        $('#saveOrderBtn').click(function() {
+            const email = $('#userEmail').val();
+
+            if (!email) {
+                alert('Введите email');
+                return;
+            }
+
+            if (cart.length === 0) {
+                alert('Добавьте хотя бы одну услугу');
+                return;
+            }
+
+            const orderData = {
+                userEmail: email,
+                items: cart.map(item => ({
+                    serviceId: item.serviceId
+                }))
+            };
+
+            $.ajax({
+                url: '/orders/save',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(orderData),
+                success: function(response) {
+                    alert('Заказ сохранен. Номер заказа: ' + response.id);
+                    // Перенаправление на страницу подтверждения
+                    window.location.href = '/orders/confirmation/' + response.id;
+                },
+                error: function(xhr) {
+                    console.error('Ошибка:', xhr);
+                    alert('Ошибка сохранения заказа: ' + (xhr.responseText || 'Неизвестная ошибка'));
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
