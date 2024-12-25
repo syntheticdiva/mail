@@ -6,8 +6,7 @@
 
 /* Drop Tables */
 
---DROP TABLE IF EXISTS service CASCADE--
-;
+--DROP TABLE IF EXISTS service CASCADE;
 
 /* Create Tables */
 
