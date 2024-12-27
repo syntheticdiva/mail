@@ -19,4 +19,13 @@ public class ItemEntity {
     @ManyToOne
     @JoinColumn(name = "service_id", nullable = false)
     private ServiceEntity service;
+
+    @OneToOne(mappedBy = "item", cascade = CascadeType.ALL)
+    private ItemCreditCardEntity creditCardDetails;
+
+    @OneToOne(mappedBy = "item", cascade = CascadeType.ALL)
+    private ItemTransferFundsEntity transferFundsDetails;
+
+    @OneToOne(mappedBy = "item", cascade = CascadeType.ALL)
+    private ItemMortgageEntity mortgageDetails;
 }

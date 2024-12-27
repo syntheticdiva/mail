@@ -6,10 +6,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
-public interface ServiceMapper {
+public abstract class ServiceMapper {
 
     @Mapping(source = "service.id", target = "id")
     @Mapping(source = "service.name", target = "name")
     @Mapping(source = "service.code", target = "code")
-    ServiceDTO itemEntityToServiceDTO(ItemEntity itemEntity);
+    public abstract ServiceDTO itemEntityToServiceDTO(ItemEntity itemEntity);
 }

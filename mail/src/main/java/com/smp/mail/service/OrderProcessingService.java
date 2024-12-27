@@ -1,12 +1,10 @@
 package com.smp.mail.service;
 
-import com.smp.mail.dto.OrderDTO;
-import com.smp.mail.dto.ServiceDTO;
-import com.smp.mail.entity.OrderEntity;
-import com.smp.mail.entity.ServiceEntity;
+import com.smp.mail.dto.*;
+import com.smp.mail.entity.*;
 import com.smp.mail.exception.*;
 import com.smp.mail.mapper.ServiceMapper;
-import com.smp.mail.repository.ServiceRepository;
+import com.smp.mail.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -15,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.smp.mail.service.OrderService.*;
 
 @Service
 public class OrderProcessingService {
@@ -29,17 +29,24 @@ public class OrderProcessingService {
 
     @Autowired
     private ServiceMapper serviceMapper;
+    @Autowired
+    private ItemCreditCardRepository itemCreditCardRepository;
+    @Autowired
+    private ItemTransferFundsRepository itemTransferFundsRepository;
+    @Autowired
+    private ItemMortgageRepository itemMortgageRepository;
+    static final String ORDER_DATA_NULL = "Данные заказа не могут быть null";
 
     public Map<String, Object> saveOrder(OrderDTO orderDTO) {
         if (orderDTO == null) {
-            throw new InvalidOrderDataException("Данные заказа не могут быть null");
+            throw new InvalidOrderDataException(ORDER_DATA_NULL);
         }
 
         try {
             OrderEntity savedOrder = orderService.createOrder(orderDTO);
 
             if (savedOrder == null) {
-                throw new OrderCreationException("Не удалось создать заказ");
+                throw new OrderCreationException(ORDER_CREATION_FAILED);
             }
 
             if (savedOrder.getItemEntities() == null || savedOrder.getItemEntities().isEmpty()) {
@@ -51,7 +58,9 @@ public class OrderProcessingService {
                         if (item == null || item.getService() == null) {
                             throw new OrderCreationException("Некорректная позиция заказа");
                         }
-                        return serviceMapper.itemEntityToServiceDTO(item);
+                        ServiceDTO serviceDTO = serviceMapper.itemEntityToServiceDTO(item);
+                        fillServiceSpecificDetails(item, serviceDTO);
+                        return serviceDTO;
                     })
                     .collect(Collectors.toList());
 
@@ -70,16 +79,11 @@ public class OrderProcessingService {
 
             return response;
 
-        } catch (InvalidOrderDataException |
-                 OrderItemValidationException |
-                 ServiceNotFoundException |
-                 OrderCreationException ex) {
+        } catch (InvalidOrderDataException | OrderItemValidationException | ServiceNotFoundException | OrderCreationException ex) {
             throw ex;
         } catch (DataAccessException ex) {
             throw new OrderCreationException("Ошибка при работе с базой данных", ex);
-        } catch (IllegalArgumentException |
-                 IllegalStateException |
-                 NullPointerException ex) {
+        } catch (IllegalArgumentException | IllegalStateException | NullPointerException ex) {
             throw new OrderCreationException("Некорректные параметры при создании заказа", ex);
         } catch (RuntimeException ex) {
             throw new OrderCreationException("Непредвиденная ошибка при создании заказа", ex);
@@ -98,6 +102,44 @@ public class OrderProcessingService {
         } catch (DataAccessException ex) {
             throw new ServiceDatabaseConnectionException(
                     "Ошибка получения списка услуг", ex);
+        }
+    }
+    private void fillServiceSpecificDetails(ItemEntity itemEntity, ServiceDTO serviceDTO) {
+        String serviceCode = itemEntity.getService().getCode();
+
+        switch (serviceCode) {
+            case CODE_CREDIT_CARD:
+                ItemCreditCardEntity creditCardEntity = itemCreditCardRepository.findByItem(itemEntity);
+                if (creditCardEntity != null) {
+                    CreditCardDetailsDTO details = new CreditCardDetailsDTO();
+                    details.setCreditLimit(creditCardEntity.getCreditLimit());
+                    details.setInterestRate(creditCardEntity.getInterestRate());
+                    details.setLoanTerm(creditCardEntity.getLoanTerm());
+                    serviceDTO.setCreditCardDetails(details);
+                }
+                break;
+
+            case CODE_TRANSFER_FUNDS:
+                ItemTransferFundsEntity transferEntity = itemTransferFundsRepository.findByItem(itemEntity);
+                if (transferEntity != null) {
+                    TransferFundsDetailsDTO details = new TransferFundsDetailsDTO();
+                    details.setTransferType(transferEntity.getTransferType().name());
+                    details.setTransferAmount(transferEntity.getTransferAmount());
+                    details.setCommission(transferEntity.getCommission());
+                    serviceDTO.setTransferFundsDetails(details);
+                }
+                break;
+
+            case CODE_MORTGAGE:
+                ItemMortgageEntity mortgageEntity = itemMortgageRepository.findByItem(itemEntity);
+                if (mortgageEntity != null) {
+                    MortgageDetailsDTO details = new MortgageDetailsDTO();
+                    details.setLoanAmount(mortgageEntity.getLoanAmount());
+                    details.setLoanTerm(mortgageEntity.getLoanTerm());
+                    details.setInterestRate(mortgageEntity.getInterestRate());
+                    serviceDTO.setMortgageDetails(details);
+                }
+                break;
         }
     }
 }

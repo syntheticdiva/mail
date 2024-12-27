@@ -19,7 +19,6 @@ public class OrderController {
     private static final String PATH_CREATE = "/create";
     private static final String PATH_SAVE = "/save";
     private static final String PATH_CONFIRMATION = "/confirmation/{orderId}";
-
     private static final String VIEW_ORDER_CREATION = "order-creation";
     private static final String VIEW_ORDER_CONFIRMATION = "order-confirmation";
 

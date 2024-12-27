@@ -21,11 +21,18 @@
             <select id="serviceSelect">
                 <option th:each="service : ${services}"
                         th:value="${service.id}"
-                        th:text="${service.name}">
+                        th:text="${service.name}"
+                        th:data-code="${service.code}">
                 </option>
             </select>
             <button type="button" id="addServiceBtn">Добавить в корзину</button>
         </div>
+
+        <th:block th:each="service : ${services}">
+            <div th:replace="${service.code == 'credit_card'} ? ~{service-params/credit-card-params} : ~{}"></div>
+            <div th:replace="${service.code == 'transfer_funds'} ? ~{service-params/transfer-funds-params} : ~{}"></div>
+            <div th:replace="${service.code == 'mortgage'} ? ~{service-params/mortgage-params} : ~{}"></div>
+        </th:block>
 
         <h2>Корзина услуг</h2>
         <table id="cartTable">
@@ -45,7 +52,6 @@
 
 <script>
     $(document).ready(function() {
-        // Обработчик кнопки "Создать заказ"
         $('#createNewOrderBtn').click(function() {
             $('#orderFormContainer').show();
             $(this).hide();
@@ -53,13 +59,66 @@
 
         const cart = [];
 
+        $('#serviceSelect').change(function() {
+            $('#creditCardDetailsContainer, #transferFundsDetailsContainer, #mortgageDetailsContainer').hide();
+
+            const selectedOption = $(this).find('option:selected');
+            const serviceCode = selectedOption.data('code');
+
+            switch(serviceCode) {
+                case 'credit_card':
+                    $('#creditCardDetailsContainer').show();
+                    break;
+                case 'transfer_funds':
+                    $('#transferFundsDetailsContainer').show();
+                    break;
+                case 'mortgage':
+                    $('#mortgageDetailsContainer').show();
+                    break;
+            }
+        });
+
         $('#addServiceBtn').click(function() {
             const serviceId = $('#serviceSelect').val();
             const serviceName = $('#serviceSelect option:selected').text();
+            const serviceCode = $('#serviceSelect option:selected').data('code');
+
+            let serviceDetails = {};
+
+            switch(serviceCode) {
+                case 'credit_card':
+                    serviceDetails = {
+                        creditCardDetails: {
+                            creditLimit: $('#creditLimit').val(),
+                            interestRate: $('#interestRate').val(),
+                            loanTerm: $('#loanTerm').val()
+                        }
+                    };
+                    break;
+                case 'transfer_funds':
+                    serviceDetails = {
+                        transferFundsDetails: {
+                            transferType: $('#transferType').val(),
+                            transferAmount: $('#transferAmount').val(),
+                            commission: $('#commission').val()
+                        }
+                    };
+                    break;
+                case 'mortgage':
+                    serviceDetails = {
+                        mortgageDetails: {
+                            loanAmount: $('#loanAmount').val(),
+                            loanTerm: $('#mortgageLoanTerm').val(),
+                            interestRate: $('#mortgageInterestRate').val()
+                        }
+                    };
+                    break;
+            }
 
             const cartItem = {
                 serviceId: serviceId,
-                serviceName: serviceName
+                serviceName: serviceName,
+                ...serviceDetails
             };
 
             cart.push(cartItem);
@@ -103,9 +162,7 @@
 
             const orderData = {
                 userEmail: email,
-                items: cart.map(item => ({
-                    serviceId: item.serviceId
-                }))
+                items: cart
             };
 
             $.ajax({

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="transfer-funds-params" id="transferFundsDetailsContainer" style="display:none;">
+    <h3>Параметры перевода</h3>
+    <div>
+        <label>Тип перевода:</label>
+        <select id="transferType">
+            <option value="INTERNAL">Внутренний</option>
+            <option value="EXTERNAL">Внешний</option>
+        </select>
+    </div>
+    <div>
+        <label>Сумма перевода:</label>
+        <input type="number" id="transferAmount" step="0.01">
+    </div>
+    <div>
+        <label>Комиссия:</label>
+        <input type="number" id="commission" step="0.01">
+    </div>
+</div>
+</body>
+</html>
